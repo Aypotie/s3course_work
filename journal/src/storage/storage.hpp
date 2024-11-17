@@ -6,8 +6,11 @@
 #include <string>
 #include <format>
 #include <stdio.h>
+#include <vector>
+#include <map>
 
 #include "../config/config.hpp"
+#include "../../lib/crow_all.h"
 
 class Database {
 private:
@@ -65,6 +68,27 @@ public:
             cerr << "Error: " << e.what() << endl;
             throw runtime_error(e.what());
         }
+    }
+
+    vector<map<string, crow::json::wvalue>> selectUsers() {
+        vector<map<string, crow::json::wvalue>> result;
+        try{
+            pqxx::work txn(conn);
+            pqxx::result res = txn.exec("SELECT id, name, surname, lastname FROM student_group");
+
+            for (auto row : res) {
+                map<string, crow::json::wvalue> student;
+                student["id"] = row["id"].as<int>();
+                student["name"] = row["name"].as<string>();
+                student["surname"] = row["surname"].as<string>();
+                student["lastname"] = row["lastname"].as<string>();
+                result.push_back(student);
+            }
+        } catch (exception &e) {
+            cerr << "Error" << e.what() << endl;
+            throw runtime_error(e.what());
+        }
+        return result;
     }
 };
 
