@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Журнал</title>
+    <style>
+        /* Основные стили */
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #eaf4fc, #d4f0fc);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Заголовок */
+        header {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #6c7a89;
+            margin: 10px 0;
+        }
+
+        /* Секция "О сайте" */
+        .about {
+            width: 80%;
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .about p {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .about p.quote {
+            font-style: italic;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 15px 0;
+        }
+
+        table {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border: none;
+        }
+
+        th {
+            background: linear-gradient(90deg, #00baff, #00d1ff);
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        tr:nth-child(even) {
+            background: #f7faff;
+        }
+
+        tr:hover {
+            background: #e0f5ff;
+        }
+
+        td {
+            color: #555;
+        }
+
+        /* Анимация загрузки */
+        #loading {
+            font-size: 1.2rem;
+            color: #00baff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Журнал</h1>
+        <h2 id="groupName">Имя группы: Загрузка...</h2>
+    </header>
+
+    <main>
+        <table id="studentTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Отчество</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" id="loading">Загрузка студентов...</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        async function loadStudents() {
+            try {
+                const response = await fetch('/student');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch students');
+                }
+                const data = await response.json();
+                const tableBody = document.querySelector('#studentTable tbody');
+
+                // Очистить таблицу перед добавлением новых данных
+                tableBody.innerHTML = '';
+
+                // Добавить данные в таблицу
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.id}</td>
+                            <td>${student.name}</td>
+                            <td>${student.surname}</td>
+                            <td>${student.lastname}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="4">No students found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        async function loadGroupName() {
+            try {
+                const response = await fetch('/group_name');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch group name');
+                }
+                const data = await response.json();
+                const groupNameElement = document.getElementById('groupName');
+                groupNameElement.textContent = `Название группы: ${data.group_name}`;
+            } catch (error) {
+                console.error('Error loading group name:', error);
+                document.getElementById('groupName').textContent = 'Название группы не установлено';
+            }
+        }
+
+        // Загрузка данных при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStudents();
+            loadGroupName();
+        });
+    </script>
+</body>
+</html>

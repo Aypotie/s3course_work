@@ -39,7 +39,6 @@ public:
                 "id SERIAL PRIMARY KEY, "
                 "name VARCHAR(255), "
                 "max_score INT, "
-                "score INT, " //или float
                 "date DATE, "
                 "description TEXT);"
             );
