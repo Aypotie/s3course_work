@@ -2,6 +2,7 @@
 #define ROUTES_HPP
 
 #include <fstream>
+
 #include "../../lib/crow_all.h"
 #include "../storage/storage.hpp"
 
@@ -24,7 +25,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             return crow::response(500, "Internal error");
         }
     });
-
+    //name varchar , max_score int , date date, ddescription text
     CROW_ROUTE(app, "/student").methods(crow::HTTPMethod::POST)([&dbs](const crow::request& req) {
         auto body = crow::json::load(req.body);
 
@@ -64,7 +65,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         try {
             vector<map<string, crow::json::wvalue>> students = dbs.selectUsers();
             crow::json::wvalue res;
-            for (size_t i = 0; i < students.size(); ++i) {
+            for (size_t i = 0; i < students.size(); i++) {
                 crow::json::wvalue student;
                 // Вместо присваивания используем перемещение (или создание нового объекта)
                 student["id"] = crow::json::wvalue(students[i]["id"]);
@@ -130,6 +131,66 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             crow::json::wvalue response;
             response["group_name"] = group_name;
             return crow::response(200, response);
+        } catch (exception &e) {
+            return crow::response(500, "Internal error");
+        }
+    });
+
+    CROW_ROUTE(app, "/checkpoints").methods(crow::HTTPMethod::POST)([&dbs](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+
+        if (body.error()) {
+            return  crow::response(400, "Invalid JSON");
+        }
+
+        if (!body.has("name") || !body.has("max_score") || !body.has("date") || !body.has("description")) {
+            return crow::response(400, "Missing required fields: name, max_score, date, description");
+        }
+
+        string name = body["name"].s();
+        int max_score = body["max_score"].i();
+        string date = body["date"].s();
+        string descript = body["description"].s();
+        
+        if (name == "") {
+            return crow::response(400, "name is empty");
+        }
+
+        if (date == "") {
+            return crow::response(400, "date is empty");
+        }
+
+        if (max_score <= 0) {
+            return crow::response(400, "max_score is empty");
+        }
+
+        if (descript == "") {
+            return crow::response(400, "description is empty");
+        }
+
+        try {
+            dbs.addCheckpoint(name, max_score, date, descript);
+        } catch (exception &e) {
+            return crow::response(500, "Internal error");
+        }
+        return crow::response(200);
+    });
+
+    CROW_ROUTE(app, "/checkpoints").methods(crow::HTTPMethod::GET)([&dbs](const crow::request& req) {
+        try {
+            vector<map<string, crow::json::wvalue>> checkpoints = dbs.selectCheckpoints();
+            crow::json::wvalue res;
+            for (size_t i = 0; i < checkpoints.size(); i++) {
+                crow::json::wvalue checkpoint;
+                checkpoint["id"] = crow::json::wvalue(checkpoints[i]["id"]);
+                checkpoint["name"] = crow::json::wvalue(checkpoints[i]["name"]);
+                checkpoint["max_score"] = crow::json::wvalue(checkpoints[i]["max_score"]);
+                checkpoint["date"] = crow::json::wvalue(checkpoints[i]["date"]);
+                checkpoint["description"] = crow::json::wvalue(checkpoints[i]["description"]);
+
+                res["checkpoints"][i] = move(checkpoint);
+            }
+            return crow::response(res);
         } catch (exception &e) {
             return crow::response(500, "Internal error");
         }

@@ -18,54 +18,39 @@
             min-height: 100vh;
         }
 
-        /* Заголовок */
+        /* Заголовок с синей рамкой */
         header {
+            width: 100%;
+            background: #007bff;
+            padding: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
-            margin: 20px 0;
+            color: #fff;
         }
 
-        h1 {
-            font-size: 3rem;
-            color: #2c3e50;
-            font-weight: 700;
+        header h1 {
+            font-size: 2.5rem;
             margin: 0;
         }
 
-        h2 {
-            font-size: 1.5rem;
-            color: #6c7a89;
-            margin: 10px 0;
-        }
-
-        /* Секция "О сайте" */
-        .about {
-            width: 80%;
-            max-width: 800px;
-            background: #fff;
-            padding: 20px;
-            margin: 20px auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .about p {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .about p.quote {
-            font-style: italic;
-            color: #2c3e50;
+        header h2 {
             font-size: 1.2rem;
-            margin: 15px 0;
+            margin: 5px 0;
         }
 
-        table {
+        /* Контейнер для таблиц */
+        .tables-container {
+            display: flex;
+            justify-content: space-between;
             width: 80%;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 20px auto;
+            gap: 20px;
+        }
+
+        /* Общие стили таблиц */
+        table {
+            width: 100%;
             border-collapse: collapse;
             background: #fff;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -97,45 +82,93 @@
             color: #555;
         }
 
-        /* Анимация загрузки */
-        #loading {
-            font-size: 1.2rem;
-            color: #00baff;
-            animation: pulse 1.5s infinite;
+        /* Кнопки */
+        .table-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 10px 0;
         }
 
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+        .btn {
+            font-size: 1rem;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .btn-add {
+            background-color: #28a745;
+        }
+
+        .btn-add:hover {
+            background-color: #218838;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+        }
+
+        .btn-remove:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>Журнал</h1>
-        <h2 id="groupName">Имя группы: Загрузка...</h2>
+        <h2 id="groupName">Название группы: Загрузка...</h2>
     </header>
 
-    <main>
-        <table id="studentTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Имя</th>
-                    <th>Фамилия</th>
-                    <th>Отчество</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="4" id="loading">Загрузка студентов...</td>
-                </tr>
-            </tbody>
-        </table>
+    <main class="tables-container">
+        <!-- Таблица студентов -->
+        <section>
+            <div class="table-actions">
+                <button class="btn btn-add" onclick="addStudent()">+</button>
+                <button class="btn btn-remove" onclick="removeStudent()">−</button>
+            </div>
+            <table id="studentTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Фамилия</th>
+                        <th>Имя</th>
+                        <th>Отчество</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4">Загрузка студентов...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Таблица чекпоинтов -->
+        <section>
+            <div class="table-actions">
+                <button class="btn btn-add" onclick="addCheckpoint()">+</button>
+                <button class="btn btn-remove" onclick="removeCheckpoint()">−</button>
+            </div>
+            <table id="checkpointTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Максимальный Балл</th>
+                        <th>Дата</th>
+                        <th>Описание</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5">Загрузка чекпоинтов...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 
     <script>
@@ -148,17 +181,15 @@
                 const data = await response.json();
                 const tableBody = document.querySelector('#studentTable tbody');
 
-                // Очистить таблицу перед добавлением новых данных
                 tableBody.innerHTML = '';
 
-                // Добавить данные в таблицу
                 if (data.students && data.students.length > 0) {
                     data.students.forEach(student => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${student.id}</td>
-                            <td>${student.name}</td>
                             <td>${student.surname}</td>
+                            <td>${student.name}</td>
                             <td>${student.lastname}</td>
                         `;
                         tableBody.appendChild(row);
@@ -186,11 +217,58 @@
             }
         }
 
-        // Загрузка данных при загрузке страницы
+        async function loadCheckpoints() {
+            try {
+                const response = await fetch('/checkpoints');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch checkpoints');
+                }
+                const data = await response.json();
+                const tableBody = document.querySelector('#checkpointTable tbody');
+
+                tableBody.innerHTML = '';
+
+                if (data.checkpoints && data.checkpoints.length > 0) {
+                    data.checkpoints.forEach(checkpoint => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${checkpoint.id}</td>
+                            <td>${checkpoint.name}</td>
+                            <td>${checkpoint.max_score}</td>
+                            <td>${checkpoint.date}</td>
+                            <td>${checkpoint.description}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5">No checkpoints found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading checkpoints:', error);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadStudents();
             loadGroupName();
+            loadCheckpoints();
         });
+
+        function addStudent() {
+            console.log('Add student functionality');
+        }
+
+        function removeStudent() {
+            console.log('Remove student functionality');
+        }
+
+        function addCheckpoint() {
+            console.log('Add checkpoint functionality');
+        }
+
+        function removeCheckpoint() {
+            console.log('Remove checkpoint functionality');
+        }
     </script>
 </body>
 </html>

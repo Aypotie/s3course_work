@@ -43,6 +43,14 @@ public:
                 "description TEXT);"
             );
 
+            txn.exec (
+                "CREATE TABLE IF NOT EXISTS results ("
+                "id SERIAL PRIMARY KEY, "
+                "student_id INT, "
+                "checkpoint_id INT, "
+                "score INT);"
+            );
+
             // txn.exec("INSERT INTO student_group (name, surname, lastname) VALUES ('Ayslana', 'Potapova', 'Vasilievna');");
 
             txn.commit();
@@ -69,6 +77,23 @@ public:
         }
     }
 
+    void addCheckpoint(string name, int max_score, string date, string descript) {
+        try {
+            pqxx::work txn(conn);
+            txn.exec0(
+                "INSERT INTO checkpoints (name, max_score, date, description) VALUES (" +
+                txn.quote(name) + ", " +
+                txn.quote(max_score) + ", " +
+                txn.quote(date) + ", " +
+                txn.quote(descript) + ")"
+            );
+            txn.commit();
+        }  catch (exception &e) {
+            cerr << "Error: " << e.what() << endl;
+            throw runtime_error(e.what());
+        }
+    }
+
     vector<map<string, crow::json::wvalue>> selectUsers() {
         vector<map<string, crow::json::wvalue>> result;
         try{
@@ -82,6 +107,28 @@ public:
                 student["surname"] = row["surname"].as<string>();
                 student["lastname"] = row["lastname"].as<string>();
                 result.push_back(student);
+            }
+        } catch (exception &e) {
+            cerr << "Error" << e.what() << endl;
+            throw runtime_error(e.what());
+        }
+        return result;
+    }
+
+    vector<map<string, crow::json::wvalue>> selectCheckpoints() {
+        vector<map<string, crow::json::wvalue>> result;
+        try{
+            pqxx::work txn(conn);
+            pqxx::result res = txn.exec("SELECT id, name, max_score, date, description FROM checkpoints");
+
+            for (auto row : res) {
+                map<string, crow::json::wvalue> checkpoint;
+                checkpoint["id"] = row["id"].as<int>();
+                checkpoint["name"] = row["name"].as<string>();
+                checkpoint["max_score"] = row["max_score"].as<int>();
+                checkpoint["date"] = row["date"].as<string>();
+                checkpoint["description"] = row["description"].as<string>();
+                result.push_back(checkpoint);
             }
         } catch (exception &e) {
             cerr << "Error" << e.what() << endl;
