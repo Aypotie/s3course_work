@@ -2,6 +2,7 @@
 #define ROUTES_HPP
 
 #include <fstream>
+#include <vector>
 
 #include "../../lib/crow_all.h"
 #include "../storage/storage.hpp"
@@ -195,6 +196,51 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             return crow::response(500, "Internal error");
         }
     });
+
+    CROW_ROUTE(app, "/student/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id){
+        try {
+            dbs.delUser(id);
+            return crow::response(200);
+        } catch (exception &e) {
+            return crow::response(500, "Internal error");
+        }
+    });
+
+    CROW_ROUTE(app, "/api/results").methods(crow::HTTPMethod::GET)([&dbs]() {
+        try {
+            // Создаем объект подключения для работы с БД
+            pqxx::connection conn(dbs.getConnection());
+            pqxx::work txn(conn);
+
+            // Выполняем SQL-запрос
+            pqxx::result result = txn.exec(
+                "SELECT results.id, students.surname, students.name, "
+                "checkpoints.name AS checkpoint_name, results.score "
+                "FROM results "
+                "JOIN students ON results.student_id = students.id "
+                "JOIN checkpoints ON results.checkpoint_id = checkpoints.id;"
+            );
+
+            crow::json::wvalue json_result;
+
+            // Преобразуем результат в JSON
+            size_t i = 0;
+            for (const auto& row : result) {
+                crow::json::wvalue entry;
+                entry["id"] = row["id"].as<int>();
+                entry["student_name"] = row["surname"].as<std::string>() + " " + row["name"].as<std::string>();
+                entry["checkpoint_name"] = row["checkpoint_name"].as<std::string>();
+                entry["score"] = row["score"].as<int>();
+
+                json_result["results"][i++] = std::move(entry);
+            }
+
+            return crow::response(json_result);
+        } catch (const std::exception& e) {
+            return crow::response(500, "Internal Server Error");
+        }
+    });
+
 }
 
 #endif 

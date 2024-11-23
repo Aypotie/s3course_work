@@ -16,6 +16,10 @@ class Database {
 private:
     pqxx::connection conn;
 public:
+    string getConnection() const {
+        return "host=127.0.0.1 dbname=journal user=example_user password=example";
+    }
+
     Database(DBConfig& cfg) : conn("dbname="+cfg.dbName+" user="+cfg.username+" password="+cfg.password+" hostaddr="+cfg.host+" port="+to_string(cfg.port)) {
         if (conn.is_open()) {
             cout << "Connected to database: " << conn.dbname() << endl;
@@ -114,6 +118,18 @@ public:
         }
         return result;
     }
+
+    void delUser(int id) {
+        try {
+            pqxx::work txn(conn);
+            txn.exec0("DELETE FROM student_group WHERE id = " + txn.quote(id));
+            txn.commit();
+        } catch (exception &e) {
+            cerr << "Error: " << e.what() << endl;
+            throw runtime_error(e.what());
+        }
+    }
+
 
     vector<map<string, crow::json::wvalue>> selectCheckpoints() {
         vector<map<string, crow::json::wvalue>> result;
