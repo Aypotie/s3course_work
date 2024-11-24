@@ -4,150 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Журнал</title>
-    <style>
-        /* Основные стили */
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #eaf4fc, #d4f0fc);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Заголовок с синей рамкой */
-        header {
-            width: 100%;
-            background: #007bff;
-            padding: 20px 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            color: #fff;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-        }
-
-        header h2 {
-            font-size: 1.2rem;
-            margin: 5px 0;
-        }
-
-        /* Контейнер для таблиц */
-        .tables-container {
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            max-width: 1200px;
-            margin: 20px auto;
-            gap: 20px;
-        }
-
-        /* Общие стили таблиц */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: center;
-            border: none;
-        }
-
-        th {
-            background: linear-gradient(90deg, #00baff, #00d1ff);
-            color: #fff;
-            font-size: 1.1rem;
-        }
-
-        tr:nth-child(even) {
-            background: #f7faff;
-        }
-
-        tr:hover {
-            background: #e0f5ff;
-        }
-
-        td {
-            color: #555;
-        }
-
-        /* Кнопки */
-        .table-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .btn {
-            font-size: 1rem;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            color: #fff;
-        }
-
-        .btn-add {
-            background-color: #28a745;
-        }
-
-        .btn-add:hover {
-            background-color: #218838;
-        }
-
-        .btn-remove {
-            background-color: #dc3545;
-        }
-
-        .btn-remove:hover {
-            background-color: #c82333;
-        }
-
-        .modal {
-            display: none; /* Скрыто по умолчанию */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 60%;
-            max-width: 800px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #333;
-        }
-
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <header>
@@ -159,8 +16,8 @@
         <!-- Таблица студентов -->
         <section>
             <div class="table-actions">
-                <button class="btn btn-add" onclick="addStudent()">+</button>
-                <button class="btn btn-remove" onclick="removeStudent()">−</button>
+                <button class="btn btn-add" onclick="openAddStudentModal()">+</button>
+                <button class="btn btn-remove" onclick="openRemoveStudentModal()">−</button>
             </div>
             <table id="studentTable">
                 <thead>
@@ -204,13 +61,46 @@
         </section>
     </main>
 
-        <!-- Кнопка для открытия модального окна с результатами -->
+    <!-- Модальное окно для добавления студента -->
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAddStudentModal()">&times;</span>
+            <h2>Добавить Студента</h2>
+            <form id="addStudentForm">
+                <label for="surname">Фамилия:</label>
+                <input type="text" id="surname" name="surname" required>
+
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" required>
+    
+                <label for="lastname">Отчество:</label>
+                <input type="text" id="lastname" name="lastname" required>
+                <button type="submit" class="btn btn-add">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для удаления студента -->
+    <div id="removeStudentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeRemoveStudentModal()">&times;</span>
+            <h2>Удалить Студента</h2>
+            <form id="removeStudentForm">
+                <label for="studentId">ID студента:</label>
+                <input type="number" id="studentId" name="studentId" required>
+                <button type="submit" class="btn btn-remove">Удалить</button>
+            </form>
+            <p id="removeStudentMessage"></p>
+        </div>
+    </div>
+
+    <!-- Кнопка для открытия модального окна с результатами -->
     <button id="showResultsBtn" class="btn btn-add">Результаты работ</button>
 
     <!-- Модальное окно -->
     <div id="resultsModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
+            <span class="close-btn" onclick="closeCheckResultsModal()">&times;</span>
             <h2>Результаты студентов</h2>
             <table id="resultsTable">
                 <thead>
@@ -228,160 +118,6 @@
         </div>
     </div>
 
-
-    <script>
-        async function loadStudents() {
-            try {
-                const response = await fetch('/student');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch students');
-                }
-                const data = await response.json();
-                const tableBody = document.querySelector('#studentTable tbody');
-
-                tableBody.innerHTML = '';
-
-                if (data.students && data.students.length > 0) {
-                    data.students.forEach(student => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${student.id}</td>
-                            <td>${student.surname}</td>
-                            <td>${student.name}</td>
-                            <td>${student.lastname}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="4">No students found</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading students:', error);
-            }
-        }
-
-        async function loadGroupName() {
-            try {
-                const response = await fetch('/group_name');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch group name');
-                }
-                const data = await response.json();
-                const groupNameElement = document.getElementById('groupName');
-                groupNameElement.textContent = `Название группы: ${data.group_name}`;
-            } catch (error) {
-                console.error('Error loading group name:', error);
-                document.getElementById('groupName').textContent = 'Название группы не установлено';
-            }
-        }
-
-        async function loadCheckpoints() {
-            try {
-                const response = await fetch('/checkpoints');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch checkpoints');
-                }
-                const data = await response.json();
-                const tableBody = document.querySelector('#checkpointTable tbody');
-
-                tableBody.innerHTML = '';
-
-                if (data.checkpoints && data.checkpoints.length > 0) {
-                    data.checkpoints.forEach(checkpoint => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${checkpoint.id}</td>
-                            <td>${checkpoint.name}</td>
-                            <td>${checkpoint.max_score}</td>
-                            <td>${checkpoint.date}</td>
-                            <td>${checkpoint.description}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="5">No checkpoints found</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading checkpoints:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStudents();
-            loadGroupName();
-            loadCheckpoints();
-        });
-
-        function addStudent() {
-            console.log('Add student functionality');
-        }
-
-        function removeStudent() {
-            console.log('Remove student functionality');
-        }
-
-        function addCheckpoint() {
-            console.log('Add checkpoint functionality');
-        }
-
-        function removeCheckpoint() {
-            console.log('Remove checkpoint functionality');
-        }
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const resultsModal = document.getElementById('resultsModal');
-            const showResultsBtn = document.getElementById('showResultsBtn');
-            const closeResultsBtn = document.querySelector('.close-btn');
-            const resultsTableBody = document.querySelector('#resultsTable tbody');
-        
-            // Открытие модального окна с результатами
-            showResultsBtn.addEventListener('click', async () => {
-                resultsTableBody.innerHTML = ''; // Очищаем таблицу перед загрузкой
-                try {
-                    const response = await fetch('/api/results'); // API для результатов
-                    if (!response.ok) {
-                        throw new Error('Ошибка загрузки результатов');
-                    }
-        
-                    const data = await response.json();
-        
-                    if (data.results && data.results.length > 0) {
-                        data.results.forEach(result => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${result.id}</td>
-                                <td>${result.student_name}</td>
-                                <td>${result.checkpoint_name}</td>
-                                <td>${result.score}</td>
-                            `;
-                            resultsTableBody.appendChild(row);
-                        });
-                    } else {
-                        resultsTableBody.innerHTML = '<tr><td colspan="4">Результаты не найдены</td></tr>';
-                    }
-                } catch (error) {
-                    console.error('Ошибка:', error);
-                    resultsTableBody.innerHTML = '<tr><td colspan="4">Ошибка загрузки результатов</td></tr>';
-                }
-        
-                resultsModal.style.display = 'flex'; // Показываем модальное окно
-            });
-        
-            // Закрытие модального окна
-            closeResultsBtn.addEventListener('click', () => {
-                resultsModal.style.display = 'none';
-            });
-        
-            // Закрытие модального окна при клике вне содержимого
-            resultsModal.addEventListener('click', (event) => {
-                if (event.target === resultsModal) {
-                    resultsModal.style.display = 'none';
-                }
-            });
-        });
-    </script>
-    
+    <script src="/static/js/main.js"></script>
 </body>
 </html>

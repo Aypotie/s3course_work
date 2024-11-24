@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 
+#include "../storage/errors.hpp"
 #include "../../lib/crow_all.h"
 #include "../storage/storage.hpp"
 
@@ -77,6 +78,17 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             }
             return crow::response(res);
         } catch (exception &e) {
+            return crow::response(500, "Internal error");
+        }
+    });
+
+    CROW_ROUTE(app, "/student/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id){
+        try {
+            dbs.delUser(id);
+            return crow::response(200);
+        } catch (const ErrorStudentNotFound &e) {
+            return crow::response(400, e.what());
+        }catch (exception &e) {
             return crow::response(500, "Internal error");
         }
     });
@@ -197,48 +209,60 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         }
     });
 
-    CROW_ROUTE(app, "/student/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id){
+    CROW_ROUTE(app, "/results/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id) {
         try {
-            dbs.delUser(id);
+            dbs.delResult(id);
             return crow::response(200);
-        } catch (exception &e) {
+        } catch (const std::exception& e) {
             return crow::response(500, "Internal error");
         }
     });
 
-    CROW_ROUTE(app, "/api/results").methods(crow::HTTPMethod::GET)([&dbs]() {
+
+    CROW_ROUTE(app, "/results").methods(crow::HTTPMethod::GET)([&dbs]() {
         try {
-            // Создаем объект подключения для работы с БД
-            pqxx::connection conn(dbs.getConnection());
-            pqxx::work txn(conn);
-
-            // Выполняем SQL-запрос
-            pqxx::result result = txn.exec(
-                "SELECT results.id, students.surname, students.name, "
-                "checkpoints.name AS checkpoint_name, results.score "
-                "FROM results "
-                "JOIN students ON results.student_id = students.id "
-                "JOIN checkpoints ON results.checkpoint_id = checkpoints.id;"
-            );
-
-            crow::json::wvalue json_result;
-
-            // Преобразуем результат в JSON
-            size_t i = 0;
-            for (const auto& row : result) {
-                crow::json::wvalue entry;
-                entry["id"] = row["id"].as<int>();
-                entry["student_name"] = row["surname"].as<std::string>() + " " + row["name"].as<std::string>();
-                entry["checkpoint_name"] = row["checkpoint_name"].as<std::string>();
-                entry["score"] = row["score"].as<int>();
-
-                json_result["results"][i++] = std::move(entry);
+            vector<map<string, crow::json::wvalue>> res = dbs.selectResults(); 
+            crow::json::wvalue result;
+            for (size_t i = 0; i < res.size(); i++) {
+                crow::json::wvalue work;
+                work["id"] = crow::json::wvalue(res[i]["id"]);
+                work["student_name"] = crow::json::wvalue(res[i]["student_name"]);
+                work["checkpoint_name"] = crow::json::wvalue(res[i]["checkpoint_name"]);
+                work["score"] = crow::json::wvalue(res[i]["score"]);
+                
+                result["results"][i] = move(work);
             }
-
-            return crow::response(json_result);
-        } catch (const std::exception& e) {
+            return crow::response(result);
+        } catch (exception& e) {
             return crow::response(500, "Internal Server Error");
         }
+    });
+
+    CROW_ROUTE(app, "/results").methods(crow::HTTPMethod::POST)([&dbs](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+
+        if (body.error()) {
+            return crow::response(400, "Invalid JSON");
+        }
+
+        if (!body.has("student_id") || !body.has("checkpoint_id") || !body.has("score")) {
+            return crow::response(400, "Missing required fields: student_id, checkpoint_id, score");
+        }
+
+        int student_id = body["student_id"].i();
+        int checkpoint_id = body["checkpoint_id"].i();
+        int score = body["score"].i();
+
+        if (score < 0) {
+            return crow::response(400, "Invalid score");
+        }
+
+        try {
+            dbs.addResults(student_id, checkpoint_id, score);
+        } catch (exception& e) {
+            return crow::response(500, "Internal error");
+        }
+        return crow::response(200);
     });
 
 }
