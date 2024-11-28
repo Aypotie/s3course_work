@@ -140,7 +140,7 @@ public:
             pqxx::result res = txn.exec("DELETE FROM student_group WHERE id = " + txn.quote(id));
             
             if (res.affected_rows() == 0) {
-                throw ErrorStudentNotFound("Student does not exist.");
+                throw ErrorStudentNotFound("Студента не существует");
             }
         
             txn.commit();
@@ -149,6 +149,23 @@ public:
             throw;
         }
     }
+
+    void delCheckpoint(int id) {
+        try {
+            pqxx::work txn(conn);
+            pqxx::result res = txn.exec("DELETE FROM checkpoints WHERE id = " + txn.quote(id));
+
+            if (res.affected_rows() == 0) {
+                throw ErrorCheckpointNotFound("Контрольной не существует");
+            }
+
+            txn.commit();
+        } catch (const std::exception& e) {
+            cerr << "Error: " << e.what() << endl;
+            throw;
+        }
+    }
+
 
     void delResult(int id)  {
         try {

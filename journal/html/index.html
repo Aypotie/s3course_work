@@ -39,8 +39,8 @@
         <!-- Таблица чекпоинтов -->
         <section>
             <div class="table-actions">
-                <button class="btn btn-add" onclick="addCheckpoint()">+</button>
-                <button class="btn btn-remove" onclick="removeCheckpoint()">−</button>
+                <button class="btn btn-add" onclick="openAddCheckpointModal()">+</button>
+                <button class="btn btn-remove" onclick="openRemoveCheckpointModal()">−</button>
             </div>
             <table id="checkpointTable">
                 <thead>
@@ -91,6 +91,42 @@
                 <button type="submit" class="btn btn-remove">Удалить</button>
             </form>
             <p id="removeStudentMessage"></p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления контрольных -->
+    <div id="addCheckpointModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAddCheckpointModal()">&times;</span>
+            <h2>Добавить контрольную</h2>
+            <form id="addCheckpointForm">
+                <label for="name">Название работы:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="score">Макс. балл:</label>
+                <input type="number" id="score" name="score" required>
+    
+                <label for="date">Дата:</label>
+                <input type="text" id="date" name="date" required>
+
+                <label for="description">Описание работы:</label>
+                <input type="text" id="description" name="description" required>
+                <button type="submit" class="btn btn-add">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для удаления контрольных -->
+    <div id="removeCheckpointModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeRemoveCheckpointModal()">&times;</span>
+            <h2>Удалить работу</h2>
+            <form id="removeCheckpointForm">
+                <label for="checkpointId">ID работы:</label>
+                <input type="number" id="checkpointId" name="checkpointId" required>
+                <button type="submit" class="btn btn-remove">Удалить</button>
+            </form>
+            <p id="removeCheckpointMessage"></p>
         </div>
     </div>
 

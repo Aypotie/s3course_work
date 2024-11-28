@@ -209,6 +209,18 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         }
     });
 
+    CROW_ROUTE(app, "/checkpoints/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id) {
+        try {
+            dbs.delCheckpoint(id);
+            return crow::response(200);
+        } catch (const ErrorCheckpointNotFound& e) {
+            return crow::response(400, e.what());
+        } catch (const exception& e) {
+            return crow::response(500, "Internal Server Error");
+        }
+    });
+
+
     CROW_ROUTE(app, "/results/<int>").methods(crow::HTTPMethod::DELETE)([&dbs](int id) {
         try {
             dbs.delResult(id);

@@ -50,9 +50,9 @@ async function loadCheckpoints() {
             throw new Error('Failed to fetch checkpoints');
         }
         const data = await response.json();
-        const tableBody = document.querySelector('#checkpointTable tbody');
 
-        tableBody.innerHTML = '';
+        const tableBody = document.querySelector('#checkpointTable tbody');
+        tableBody.innerHTML = ''; // Очистка таблицы
 
         if (data.checkpoints && data.checkpoints.length > 0) {
             data.checkpoints.forEach(checkpoint => {
@@ -96,12 +96,6 @@ function removeCheckpoint() {
     console.log('Remove checkpoint functionality');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadStudents();
-    loadGroupName();
-    loadCheckpoints();
-});
-
 // Открытие/закрытие модальных окон
 function openAddStudentModal() {
     document.getElementById('addStudentModal').style.display = 'flex';
@@ -109,6 +103,18 @@ function openAddStudentModal() {
 
 function closeAddStudentModal() {
     document.getElementById('addStudentModal').style.display = 'none';
+}
+
+function openAddCheckpointModal() {
+    document.getElementById('addCheckpointModal').style.display = 'flex';
+}
+
+function closeAddCheckpointModal() {
+    document.getElementById('addCheckpointModal').style.display = 'none';
+}
+
+function openCheckResultsModal() {
+    document.getElementById('resultsModal').style.display = 'flex';
 }
 
 function closeCheckResultsModal() {
@@ -123,27 +129,12 @@ function closeRemoveStudentModal() {
     document.getElementById('removeStudentModal').style.display = 'none';
 }
 
-// Загрузка таблиц
-async function loadStudents() {
-    try {
-        const response = await fetch('/student');
-        const data = await response.json();
-        const tableBody = document.querySelector('#studentTable tbody');
-        tableBody.innerHTML = '';
+function openRemoveCheckpointModal() {
+    document.getElementById('removeCheckpointModal').style.display = 'flex';
+}
 
-        data.students.forEach(student => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${student.id}</td>
-                <td>${student.surname}</td>
-                <td>${student.name}</td>
-                <td>${student.lastname}</td>
-            `;
-            tableBody.appendChild(row);
-        });
-    } catch (error) {
-        console.error('Error loading students:', error);
-    }
+function closeRemoveCheckpointModal() {
+    document.getElementById('removeCheckpointModal').style.display = 'none';
 }
 
 // Добавление студента
@@ -183,8 +174,65 @@ document.getElementById('removeStudentForm').addEventListener('submit', async (e
     }
 });
 
+//добавление чекпоинта
+document.getElementById('addCheckpointForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const checkpointData = {
+        name: formData.get('name'),
+        max_score: parseInt(formData.get('score'), 10),
+        date: formData.get('date'),
+        description: formData.get('description'),
+    };
+
+    try {
+        const response = await fetch('/checkpoints', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(checkpointData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при добавлении чекпоинта');
+        }
+
+        loadCheckpoints(); // Перезагрузка таблицы чекпоинтов
+        closeAddCheckpointModal(); // Закрытие модального окна
+    } catch (error) {
+        console.error('Error adding checkpoint:', error);
+    }
+});
+
+
+//удаление чекпоинта
+document.getElementById('removeCheckpointForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const checkpointId = document.getElementById('checkpointId').value;
+    const removeCheckpointMessage = document.getElementById('removeCheckpointMessage');
+
+    try {
+        const res = await fetch(`/checkpoints/${checkpointId}`, { method: 'DELETE' });
+
+        if (!res.ok) { // Используем res вместо response
+            const errorMessage = await res.text();
+            throw new Error(`Ошибка при удалении чекпоинта: ${errorMessage}`);
+        }
+
+        loadCheckpoints(); // Перезагрузка таблицы чекпоинтов
+        closeRemoveCheckpointModal(); // Закрытие модального окна
+    } catch (error) {
+        console.error('Ошибка удаления чекпоинта:', error);
+        removeCheckpointMessage.textContent = error.message; // Отображаем сообщение об ошибке
+    }
+});
+ 
+
 // Modal logic
 document.addEventListener('DOMContentLoaded', () => {
+    loadStudents();
+    loadGroupName();
+    loadCheckpoints();
+
     const resultsModal = document.getElementById('resultsModal');
     const showResultsBtn = document.getElementById('showResultsBtn');
     const closeResultsBtn = document.querySelector('.close-btn');
