@@ -8,16 +8,23 @@
 #include <stdio.h>
 #include <vector>
 #include <map>
+#include <regex>
 
 #include "errors.hpp"
 #include "../config/config.hpp"
 #include "../../lib/crow_all.h"
+#include "query.hpp"
 
 class Database {
 private:
     pqxx::connection conn;
+    SQLLoader sqlLoader;
 public:
-    Database(DBConfig& cfg) : conn("dbname="+cfg.dbName+" user="+cfg.username+" password="+cfg.password+" hostaddr="+cfg.host+" port="+to_string(cfg.port)) {
+    bool isValidDate(const string& date) {
+        regex dateRegex("^(0[1-9]|[12][0-9]|3[01])\\.(0[1-9]|1[0-2])\\.(\\d{4})$");
+        return regex_match(date, dateRegex);
+    }
+    Database(DBConfig& cfg) : conn("dbname="+cfg.dbName+" user="+cfg.username+" password="+cfg.password+" hostaddr="+cfg.host+" port="+to_string(cfg.port)), sqlLoader("sql_query.sql") {
         if (conn.is_open()) {
             cout << "Connected to database: " << conn.dbname() << endl;
         } else {
@@ -27,35 +34,12 @@ public:
     void createTables() {
         try {
             pqxx::work txn(conn);
-            txn.exec(
-                "CREATE TABLE IF NOT EXISTS student_group ("
-                "id SERIAL PRIMARY KEY, "
-                "name VARCHAR(255) NOT NULL, "
-                "surname VARCHAR(255) NOT NULL, "
-                "lastname VARCHAR(255) NOT NULL);"
-            ); 
-
-            txn.exec (
-                "CREATE TABLE IF NOT EXISTS checkpoints ("
-                "id SERIAL PRIMARY KEY, "
-                "name VARCHAR(255) NOT NULL, "
-                "max_score INT NOT NULL, "
-                "date VARCHAR(32), "
-                "description TEXT);"
-            );
-
-            txn.exec (
-                "CREATE TABLE IF NOT EXISTS results ("
-                "id SERIAL PRIMARY KEY, "
-                "student_id INT NOT NULL, "
-                "checkpoint_id INT NOT NULL, "
-                "score INT NOT NULL);"
-            );
-
-            // txn.exec("INSERT INTO student_group (name, surname, lastname) VALUES ('Ayslana', 'Potapova', 'Vasilievna');");
+            txn.exec(sqlLoader.getQuery("Create student_group table"));
+            txn.exec(sqlLoader.getQuery("Create checkpoints table"));
+            txn.exec(sqlLoader.getQuery("Create results table"));
 
             txn.commit();
-            cout << "Tables are create" << endl;
+            //cout << "Tables are create" << endl;
         } catch (exception &e) {
             throw runtime_error(e.what());
         }
@@ -64,11 +48,9 @@ public:
     void addUser(string name, string surname, string lastname) {
         try {
             pqxx::work txn(conn);
-            txn.exec0(
-                "INSERT INTO student_group (name, surname, lastname) VALUES (" +
-                txn.quote(name) + ", " +
-                txn.quote(surname) + ", " +
-                txn.quote(lastname) + ")"
+            txn.exec_params(
+                sqlLoader.getQuery("Insert user"),
+                name, surname, lastname
             );
 
             txn.commit();
@@ -81,28 +63,29 @@ public:
     void addCheckpoint(string name, int max_score, string date, string descript) {
         try {
             pqxx::work txn(conn);
-            txn.exec0(
-                "INSERT INTO checkpoints (name, max_score, date, description) VALUES (" +
-                txn.quote(name) + ", " +
-                txn.quote(max_score) + ", " +
-                txn.quote(date) + ", " +
-                txn.quote(descript) + ")"
+            
+            txn.exec_params(
+                sqlLoader.getQuery("Insert checkpoint"),
+                name, max_score, date, descript
             );
+
+            if (!isValidDate(date)) {
+                throw ErrorDate("Неправильная запись даты");
+            }
+
             txn.commit();
         }  catch (exception &e) {
             cerr << "Error: " << e.what() << endl;
-            throw runtime_error(e.what());
+            throw;
         }
     }
 
     void addResults(int student_id, int checkpoint_id, int score) {
         try {
             pqxx::work txn(conn);
-            txn.exec0(
-                "INSERT INTO results (student_id, checkpoint_id, score) VALUES (" +
-                txn.quote(student_id) + ", " +
-                txn.quote(checkpoint_id) + ", " +
-                txn.quote(score) + ")"
+            txn.exec_params(
+                sqlLoader.getQuery("Insert result"),
+                student_id, checkpoint_id, score
             );
 
             txn.commit();
@@ -116,7 +99,7 @@ public:
         vector<map<string, crow::json::wvalue>> result;
         try{
             pqxx::work txn(conn);
-            pqxx::result res = txn.exec("SELECT id, name, surname, lastname FROM student_group");
+            pqxx::result res = txn.exec(sqlLoader.getQuery("Select users"));
 
             for (auto row : res) {
                 map<string, crow::json::wvalue> student;
@@ -137,14 +120,14 @@ public:
         try {
             pqxx::work txn(conn);
             
-            pqxx::result res = txn.exec("DELETE FROM student_group WHERE id = " + txn.quote(id));
+            pqxx::result res = txn.exec_params(sqlLoader.getQuery("Delete user"), id);
             
             if (res.affected_rows() == 0) {
                 throw ErrorStudentNotFound("Студента не существует");
             }
         
             txn.commit();
-        } catch (const std::exception& e) {
+        } catch (const exception& e) {
             cerr << "Error: " << e.what() << endl;
             throw;
         }
@@ -153,7 +136,7 @@ public:
     void delCheckpoint(int id) {
         try {
             pqxx::work txn(conn);
-            pqxx::result res = txn.exec("DELETE FROM checkpoints WHERE id = " + txn.quote(id));
+            pqxx::result res = txn.exec_params(sqlLoader.getQuery("Delete checkpoint"), id);
 
             if (res.affected_rows() == 0) {
                 throw ErrorCheckpointNotFound("Контрольной не существует");
@@ -170,7 +153,7 @@ public:
     void delResult(int id)  {
         try {
             pqxx::work txn(conn);
-            txn.exec0("DELETE FROM results WHERE id = " + txn.quote(id));
+            txn.exec_params(sqlLoader.getQuery("Delete result"), id);
             txn.commit();
         } catch (exception &e) {
             cerr << "Error: "   << e.what() << endl;
@@ -182,7 +165,7 @@ public:
         vector<map<string, crow::json::wvalue>> result;
         try{
             pqxx::work txn(conn);
-            pqxx::result res = txn.exec("SELECT id, name, max_score, date, description FROM checkpoints");
+            pqxx::result res = txn.exec(sqlLoader.getQuery("Select checkpoints"));
 
             for (auto row : res) {
                 map<string, crow::json::wvalue> checkpoint;
@@ -204,13 +187,7 @@ public:
         std::vector<std::map<std::string, crow::json::wvalue>> result;
         try {
             pqxx::work txn(conn);
-            pqxx::result res = txn.exec(
-                "SELECT results.id, student_group.lastname, student_group.surname, student_group.name, "
-                "checkpoints.name AS checkpoint_name, results.score "
-                "FROM results "
-                "JOIN student_group ON results.student_id = student_group.id "
-                "JOIN checkpoints ON results.checkpoint_id = checkpoints.id;"
-            );
+            pqxx::result res = txn.exec(sqlLoader.getQuery("Select results"));
 
             for (const auto& row : res) {
                 map<string, crow::json::wvalue> result_entry;
@@ -227,6 +204,5 @@ public:
         return result;
     }
 };
-
 
 #endif

@@ -183,10 +183,12 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
 
         try {
             dbs.addCheckpoint(name, max_score, date, descript);
+            return crow::response(200);
+        } catch (const ErrorDate &e) {
+            return crow::response(400, e.what());
         } catch (exception &e) {
             return crow::response(500, "Internal error");
         }
-        return crow::response(200);
     });
 
     CROW_ROUTE(app, "/checkpoints").methods(crow::HTTPMethod::GET)([&dbs](const crow::request& req) {

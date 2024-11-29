@@ -185,6 +185,8 @@ document.getElementById('addCheckpointForm').addEventListener('submit', async (e
         description: formData.get('description'),
     };
 
+    const errorMessageElement = document.getElementById('checkpointErrorMessage');  // Элемент для вывода ошибки
+
     try {
         const response = await fetch('/checkpoints', {
             method: 'POST',
@@ -193,15 +195,19 @@ document.getElementById('addCheckpointForm').addEventListener('submit', async (e
         });
 
         if (!response.ok) {
-            throw new Error('Ошибка при добавлении чекпоинта');
+            const errorMessage = await response.text();  // Получаем сообщение об ошибке с сервера
+            throw new Error(errorMessage);  // Бросаем ошибку с этим сообщением
         }
 
         loadCheckpoints(); // Перезагрузка таблицы чекпоинтов
         closeAddCheckpointModal(); // Закрытие модального окна
+
     } catch (error) {
-        console.error('Error adding checkpoint:', error);
+        console.error('Ошибка добавления чекпоинта:', error);
+        errorMessageElement.textContent = error.message;  // Отображаем сообщение об ошибке на странице
     }
 });
+
 
 
 //удаление чекпоинта

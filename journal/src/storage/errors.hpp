@@ -28,4 +28,15 @@ public:
     }
 };
 
+class ErrorDate : public exception {
+protected:
+    string message;
+public:
+    ErrorDate(const string& msg) : message(msg) {}
+
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+};
+
 #endif
