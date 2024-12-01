@@ -8,7 +8,7 @@ function closeCheckResultsModal() {
 
 function openAddResultModal(studentId) {
     const modal = document.getElementById("addResultModal");
-    modal.style.display = "block";
+    modal.style.display = "flex";
 
     // Заполняем поле ID студента
     const studentIdInput = document.getElementById("addStudentId");
@@ -26,27 +26,39 @@ function closeAddResultModal() {
 document.getElementById("addResultForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const studentId = document.getElementById("studentId").value;
-    const checkpointId = document.getElementById("checkpointId").value;
-    const score = document.getElementById("score").value;
+    const studentId = document.getElementById("addStudentId").value;
+    const checkpointId = document.getElementById("addCheckpointId").value;
+    const score = document.getElementById("addScore").value;
 
     try {
         // Отправка данных на сервер
-        const response = await fetch("/api/results", {
+        const response = await fetch("/results", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ studentId, checkpointId, score }),
+            body: JSON.stringify({
+                "student_id": studentId, 
+                "checkpoint_id": checkpointId, 
+                "score": score
+            }),
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            if (errorText == "Invalid score") {
+                throw new Error("Неправильный балл оценки");
+            }
+            if (errorText == "Score bigger then max") {
+                throw new Error("Оценка превышает максимальную");
+            }
+            if (errorText == "Checkpoint not found") {
+                throw new Error("Контрольной точки с таким ID не существует");
+            }
             throw new Error("Ошибка добавления результата");
         }
 
-        // Закрываем модальное окно и обновляем данные
         closeAddResultModal();
-        alert("Результат добавлен успешно!");
     } catch (error) {
         document.getElementById("resultErrorMessage").textContent = error.message;
     }

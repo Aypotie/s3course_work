@@ -272,6 +272,18 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         }
 
         try {
+            auto checkpoint = dbs.selectCheckpointByID(checkpoint_id);
+            int max_score = get<int>(checkpoint["max_score"]);
+            if (score > max_score) {
+                return crow::response(400, "Score bigger then max"); 
+            }
+        } catch (const ErrorCheckpointNotFound& e) {
+            return crow::response(400, "Checkpoint not found");
+        } catch (exception &e) {
+            return crow::response(400, "Invalid index");
+        }
+
+        try {
             dbs.addResults(student_id, checkpoint_id, score);
         } catch (exception& e) {
             return crow::response(500, "Internal error");

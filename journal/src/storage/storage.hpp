@@ -15,6 +15,8 @@
 #include "../../lib/crow_all.h"
 #include "query.hpp"
 
+using ValueType = variant<int, string>;
+
 class Database {
 private:
     pqxx::connection conn;
@@ -143,7 +145,7 @@ public:
             }
 
             txn.commit();
-        } catch (const std::exception& e) {
+        } catch (const exception& e) {
             cerr << "Error: " << e.what() << endl;
             throw;
         }
@@ -160,6 +162,31 @@ public:
             throw runtime_error(e.what());
         }
     }
+
+    map<string, ValueType> selectCheckpointByID(int id) {
+        map<string, ValueType> checkpoint;
+        try{
+            pqxx::work txn(conn);
+            pqxx::result res = txn.exec_params(sqlLoader.getQuery("Select checkpoint by id"), id);
+            if (res.empty()) {
+                throw ErrorCheckpointNotFound("Checkpoint not found");
+            }
+
+            for (auto row : res) {
+                
+                checkpoint["id"] = row["id"].as<int>();
+                checkpoint["name"] = row["name"].as<string>();
+                checkpoint["max_score"] = row["max_score"].as<int>();
+                checkpoint["date"] = row["date"].as<string>();
+                checkpoint["description"] = row["description"].as<string>();
+            }
+            
+        } catch (const exception &e) {
+            cerr << "Error: " << e.what() << endl;
+            throw;
+        }
+        return checkpoint;
+    };
 
     vector<map<string, crow::json::wvalue>> selectCheckpoints() {
         vector<map<string, crow::json::wvalue>> result;

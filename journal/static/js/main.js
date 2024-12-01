@@ -46,6 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsModal.style.display = 'flex';
     });
 
+    // Close modal
+    closeResultsBtn.addEventListener('click', () => {
+        resultsModal.style.display = 'none';
+    });
+
     // Close modal on outside click
     resultsModal.addEventListener('click', (event) => {
         if (event.target === resultsModal) {

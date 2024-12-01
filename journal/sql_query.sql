@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS results (
     id SERIAL PRIMARY KEY,
     student_id INT NOT NULL,
     checkpoint_id INT NOT NULL,
-    score INT NOT NULL
+    score INT NOT NULL,
+    UNIQUE (student_id, checkpoint_id)
 );
 
 -- Insert user
@@ -37,6 +38,9 @@ SELECT id, name, surname, lastname FROM student_group;
 
 -- Select checkpoints
 SELECT id, name, max_score, date, description FROM checkpoints;
+
+-- Select checkpoint by id
+SELECT id, name, max_score, date, description FROM checkpoints WHERE id = $1;
 
 -- Select results
 SELECT results.id, student_group.lastname, student_group.surname, student_group.name, 
