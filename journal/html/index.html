@@ -26,14 +26,15 @@
                         <th>Фамилия</th>
                         <th>Имя</th>
                         <th>Отчество</th>
+                        <th>Добавить оценку</th> 
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="4">Загрузка студентов...</td>
+                        <td colspan="5">Загрузка студентов...</td>
                     </tr>
                 </tbody>
-            </table>
+            </table>            
         </section>
 
         <!-- Таблица чекпоинтов -->
@@ -132,8 +133,26 @@
         </div>
     </div>
 
-    <!-- Кнопка для открытия модального окна с результатами -->
-    <button id="showResultsBtn" class="btn btn-add">Результаты работ</button>
+   <!-- Модальное окно для добавления результата -->
+    <div id="addResultModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAddResultModal()">&times;</span>
+            <h2>Добавить Результат</h2>
+            <form id="addResultForm">
+                <label for="addStudentId">ID студента:</label>
+                <input type="number" id="addStudentId" name="studentId" required>
+
+                <label for="checkpointId">ID Контрольной:</label>
+                <input type="number" id="checkpointId" name="checkpointId" required>
+
+                <label for="score">Оценка:</label>
+                <input type="number" id="score" name="score" required>
+
+                <button type="submit" class="btn btn-add">Добавить</button>
+            </form>
+            <p id="resultErrorMessage"></p>
+        </div>
+    </div>
 
     <!-- Модальное окно -->
     <div id="resultsModal" class="modal">
@@ -156,6 +175,12 @@
         </div>
     </div>
 
+    <!-- Кнопка для открытия модального окна с результатами -->
+    <button id="showResultsBtn" class="btn btn-add">Результаты работ</button>
+
+    <script src="/static/js/checkpoints.js"></script>
+    <script src="/static/js/students.js"></script>
+    <script src="/static/js/results.js"></script>
     <script src="/static/js/main.js"></script>
 </body>
 </html>
