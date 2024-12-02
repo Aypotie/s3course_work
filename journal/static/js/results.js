@@ -39,7 +39,7 @@ showResultsBtn.addEventListener('click', async () => {
         if (!studentResults[student]) {
             studentResults[student] = {};
         }
-        studentResults[student][result.checkpoint_name] = result.score;
+        studentResults[student][result.checkpoint_name] = {"score": result.score, "id": result.id};
     });
 
     // Обновляем заголовки таблицы
@@ -57,8 +57,15 @@ showResultsBtn.addEventListener('click', async () => {
         const row = document.createElement('tr');
         let rowHTML = `<td>${studentName}</td>`;
         checkpointNames.forEach(checkpointName => {
-            const score = studentResults[studentName][checkpointName] || ''; // Пустая строка, если данных нет
-            rowHTML += `<td>${score}</td>`;
+            let score, id;
+            if (studentResults[studentName][checkpointName]) {
+                score = studentResults[studentName][checkpointName]["score"] || '';
+                id = studentResults[studentName][checkpointName]["id"] || '0';
+            } else {
+                score = '';
+                id = '0';
+            }
+            rowHTML += `<td result-id="${id}">${score}</td>`;
         });
         row.innerHTML = rowHTML;
         resultsTableBody.appendChild(row);
