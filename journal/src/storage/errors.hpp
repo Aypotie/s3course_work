@@ -39,4 +39,15 @@ public:
     }
 };
 
+class ErrorUnique : public exception {
+protected:
+    string message;
+public:
+    ErrorUnique(const string& msg) : message(msg) {}
+
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+};
+
 #endif

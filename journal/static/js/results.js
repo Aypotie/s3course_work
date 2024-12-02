@@ -140,7 +140,11 @@ document.getElementById("addResultForm").addEventListener("submit", async functi
             if (errorText == "Checkpoint not found") {
                 throw new Error("Контрольной точки с таким ID не существует");
             }
+            if (errorText == "Exist result") {
+                throw new Error("Результат для данного студента уже существует");
+            }
             throw new Error("Ошибка добавления результата");
+
         }
 
         closeAddResultModal();

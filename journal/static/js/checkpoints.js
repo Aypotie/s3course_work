@@ -83,6 +83,7 @@ document.getElementById('addCheckpointForm').addEventListener('submit', async (e
         if (!response.ok) {
             const errorMessage = await response.text();  // Получаем сообщение об ошибке с сервера
             throw new Error(errorMessage);  // Бросаем ошибку с этим сообщением
+            
         }
 
         loadCheckpoints(); // Перезагрузка таблицы чекпоинтов
@@ -90,7 +91,13 @@ document.getElementById('addCheckpointForm').addEventListener('submit', async (e
 
     } catch (error) {
         console.error('Ошибка добавления чекпоинта:', error);
-        errorMessageElement.textContent = error.message;  // Отображаем сообщение об ошибке на странице
+        if (error.message == "Incorrect date") {
+            errorMessageElement.textContent = "Неправильная запись даты";
+        } else if (error.message == "Exist checkpoint") {
+            errorMessageElement.textContent = "Такая работа уже существует";
+        } else {
+            errorMessageElement.textContent = error.message;  // Отображаем сообщение об ошибке на странице
+        }
     }
 });
 
@@ -105,13 +112,17 @@ document.getElementById('removeCheckpointForm').addEventListener('submit', async
 
         if (!res.ok) { // Используем res вместо response
             const errorMessage = await res.text();
-            throw new Error(`Ошибка при удалении чекпоинта: ${errorMessage}`);
+            throw new Error(errorMessage);
         }
 
         loadCheckpoints(); // Перезагрузка таблицы чекпоинтов
         closeRemoveCheckpointModal(); // Закрытие модального окна
     } catch (error) {
         console.error('Ошибка удаления чекпоинта:', error);
-        removeCheckpointMessage.textContent = error.message; // Отображаем сообщение об ошибке
+        if (error.message == "Checkpoint not found") {
+            removeCheckpointMessage.textContent = "Контрольная точка не найдена";
+        } else {
+            removeCheckpointMessage.textContent = error.message;
+        }
     }
 });

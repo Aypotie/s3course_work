@@ -74,7 +74,12 @@ document.getElementById('removeStudentForm').addEventListener('submit', async (e
     try {
         const res = await fetch(`/student/${studentId}`, { method: 'DELETE' });
         if (res.status != 200) {
-            removeStudentMessage.textContent = await res.text();
+            const errorMessage = await res.text();
+            if (errorMessage == "Student not found") {
+                removeStudentMessage.textContent = "Студент не найден";
+            } else {
+                removeStudentMessage.textContent = await res.text();
+            }
             return;
         }
         loadStudents();

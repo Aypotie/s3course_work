@@ -87,7 +87,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             dbs.delUser(id);
             return crow::response(200);
         } catch (const ErrorStudentNotFound &e) {
-            return crow::response(400, e.what());
+            return crow::response(400, "Student not found");
         }catch (exception &e) {
             return crow::response(500, "Internal error");
         }
@@ -185,7 +185,9 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             dbs.addCheckpoint(name, max_score, date, descript);
             return crow::response(200);
         } catch (const ErrorDate &e) {
-            return crow::response(400, e.what());
+            return crow::response(400, "Incorrect date");
+        } catch(const ErrorUnique &e) {
+            return crow::response(400, "Exist checkpoint");
         } catch (exception &e) {
             return crow::response(500, "Internal error");
         }
@@ -216,7 +218,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             dbs.delCheckpoint(id);
             return crow::response(200);
         } catch (const ErrorCheckpointNotFound& e) {
-            return crow::response(400, e.what());
+            return crow::response(400, "Checkpoint not found");
         } catch (const exception& e) {
             return crow::response(500, "Internal Server Error");
         }
@@ -285,6 +287,8 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
 
         try {
             dbs.addResults(student_id, checkpoint_id, score);
+        } catch(const ErrorUnique &e) {
+            return crow::response(400, "Exist result");
         } catch (exception& e) {
             return crow::response(500, "Internal error");
         }

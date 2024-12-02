@@ -72,11 +72,17 @@ public:
             );
 
             if (!isValidDate(date)) {
-                throw ErrorDate("Неправильная запись даты");
+                throw ErrorDate("Incorrect");
             }
 
             txn.commit();
-        }  catch (exception &e) {
+        }  catch (pqxx::sql_error &e) {
+            if (e.sqlstate() == "23505") { 
+                cerr << "Error: " << e.what() << endl;
+                throw ErrorUnique("Cheeckpoint is already created");
+            }
+            throw runtime_error(e.what());
+        } catch (exception &e) {
             cerr << "Error: " << e.what() << endl;
             throw;
         }
@@ -91,6 +97,12 @@ public:
             );
 
             txn.commit();
+        } catch (pqxx::sql_error &e) {
+            if (e.sqlstate() == "23505") { 
+                cerr << "Error: " << e.what() << endl;
+                throw ErrorUnique("Result is already created");
+            }
+            throw runtime_error(e.what());
         } catch (exception &e) {
             cerr << "Error: " << e.what() << endl;
             throw runtime_error(e.what());
@@ -125,7 +137,7 @@ public:
             pqxx::result res = txn.exec_params(sqlLoader.getQuery("Delete user"), id);
             
             if (res.affected_rows() == 0) {
-                throw ErrorStudentNotFound("Студента не существует");
+                throw ErrorStudentNotFound("Student not found");
             }
         
             txn.commit();
@@ -141,7 +153,7 @@ public:
             pqxx::result res = txn.exec_params(sqlLoader.getQuery("Delete checkpoint"), id);
 
             if (res.affected_rows() == 0) {
-                throw ErrorCheckpointNotFound("Контрольной не существует");
+                throw ErrorCheckpointNotFound("Checkpoint not found");
             }
 
             txn.commit();
