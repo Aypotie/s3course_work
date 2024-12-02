@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS student_group (
 -- Create checkpoints table
 CREATE TABLE IF NOT EXISTS checkpoints (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
     max_score INT NOT NULL,
     date VARCHAR(32),
     description TEXT

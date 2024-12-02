@@ -1,3 +1,84 @@
+const showResultsBtn = document.getElementById('showResultsBtn');
+const resultsTableBody = document.querySelector('#resultsTable tbody');
+const resultsTableHead = document.querySelector('#resultsTable thead');
+const resultsModal = document.getElementById('resultsModal');
+const closeResultsBtn = document.querySelector('.close-btn');
+
+showResultsBtn.addEventListener('click', async () => {
+    resultsTableBody.innerHTML = '';
+    let text;
+    try {
+        const response = await fetch('/results');
+        text = await response.text();
+        if (text == "null") {
+            throw new Error("Результаты ещё не добавлены");
+        }
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки результатов');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        resultsTableBody.innerHTML = `<tr><td colspan="4">${error.message}</td></tr>`;
+        resultsModal.style.display = 'flex';
+        return;
+    }
+
+    const data = JSON.parse(text);
+
+    // Сохраняем уникальные чекпоинты
+    let checkpointNames = new Set();
+    data.results.forEach(result => {
+        checkpointNames.add(result.checkpoint_name);
+    });
+    checkpointNames = Array.from(checkpointNames); // Конвертируем Set в массив
+
+    // Сохраняем студентов и их результаты
+    const studentResults = {};
+    data.results.forEach(result => {
+        const student = result.student_name;
+        if (!studentResults[student]) {
+            studentResults[student] = {};
+        }
+        studentResults[student][result.checkpoint_name] = result.score;
+    });
+
+    // Обновляем заголовки таблицы
+    resultsTableHead.innerHTML = '';
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `<th>ФИО</th>`; // Первый заголовок — ФИО
+    checkpointNames.forEach(name => {
+        headerRow.innerHTML += `<th>${name}</th>`;
+    });
+    resultsTableHead.appendChild(headerRow);
+
+    // Обновляем тело таблицы
+    resultsTableBody.innerHTML = '';
+    Object.keys(studentResults).forEach(studentName => {
+        const row = document.createElement('tr');
+        let rowHTML = `<td>${studentName}</td>`;
+        checkpointNames.forEach(checkpointName => {
+            const score = studentResults[studentName][checkpointName] || ''; // Пустая строка, если данных нет
+            rowHTML += `<td>${score}</td>`;
+        });
+        row.innerHTML = rowHTML;
+        resultsTableBody.appendChild(row);
+    });
+
+    resultsModal.style.display = 'flex';
+});
+
+// Close modal
+closeResultsBtn.addEventListener('click', () => {
+    resultsModal.style.display = 'none';
+});
+
+// Close modal on outside click
+resultsModal.addEventListener('click', (event) => {
+    if (event.target === resultsModal) {
+        resultsModal.style.display = 'none';
+    }
+});
+
 function openCheckResultsModal() {
     document.getElementById('resultsModal').style.display = 'flex';
 }
@@ -10,7 +91,6 @@ function openAddResultModal(studentId) {
     const modal = document.getElementById("addResultModal");
     modal.style.display = "flex";
 
-    // Заполняем поле ID студента
     const studentIdInput = document.getElementById("addStudentId");
     studentIdInput.value = studentId;
 }
@@ -19,7 +99,6 @@ function closeAddResultModal() {
     const modal = document.getElementById("addResultModal");
     modal.style.display = "none";
 
-    // Очищаем сообщение об ошибке
     document.getElementById("resultErrorMessage").textContent = "";
 }
 
@@ -31,7 +110,6 @@ document.getElementById("addResultForm").addEventListener("submit", async functi
     const score = document.getElementById("addScore").value;
 
     try {
-        // Отправка данных на сервер
         const response = await fetch("/results", {
             method: "POST",
             headers: {

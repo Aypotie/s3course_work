@@ -267,7 +267,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         int checkpoint_id = body["checkpoint_id"].i();
         int score = body["score"].i();
 
-        if (score < 0) {
+        if (score <= 0) {
             return crow::response(400, "Invalid score");
         }
 
