@@ -190,6 +190,7 @@ async function deleteResult(studentName, checkpointName) {
     }
 }
 
+// Функция для отображения/скрытия выпадающего списка
 function toggleDropdown(studentName) {
     const dropdown = document.getElementById(`dropdown-${studentName}`);
     
@@ -221,5 +222,5 @@ function populateDropdown(studentName) {
     });
 }
 
-
+//
 
