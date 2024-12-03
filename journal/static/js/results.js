@@ -4,6 +4,8 @@ const resultsTableHead = document.querySelector('#resultsTable thead');
 const resultsModal = document.getElementById('resultsModal');
 const closeResultsBtn = document.querySelector('.close-btn');
 
+let studentResults = {};
+
 showResultsBtn.addEventListener('click', async () => {
     resultsTableBody.innerHTML = '';
     let text;
@@ -33,7 +35,7 @@ showResultsBtn.addEventListener('click', async () => {
     checkpointNames = Array.from(checkpointNames); // Конвертируем Set в массив
 
     // Сохраняем студентов и их результаты
-    const studentResults = {};
+    studentResults = {}; // Обнуляем перед загрузкой новых данных
     data.results.forEach(result => {
         const student = result.student_name;
         if (!studentResults[student]) {
@@ -69,8 +71,13 @@ showResultsBtn.addEventListener('click', async () => {
             rowHTML += `<td result-id="${id}">${score}</td>`;
         });
 
-        // Добавляем кнопку удаления результата
-        rowHTML += `<td><button class="btn btn-remove" onclick="deleteResult('${studentName}', ${JSON.stringify(studentResults)})">−</button></td>`;
+        // Добавляем кнопку удаления результата с выпадающим списком
+        rowHTML += `<td>
+                        <button class="btn btn-remove" onclick="toggleDropdown('${studentName}')">−</button>
+                        <div id="dropdown-${studentName}" class="dropdown-content" style="display: none;">
+                            <!-- Сюда будут динамически добавляться контрольные работы -->
+                        </div>
+                     </td>`;
 
         row.innerHTML = rowHTML;
         resultsTableBody.appendChild(row);
@@ -159,28 +166,60 @@ document.getElementById("addResultForm").addEventListener("submit", async functi
     }
 });
 //удаление результата
-async function deleteResult(studentName, studentResults) {
+async function deleteResult(studentName, checkpointName) {
     try {
-        // Получаем все результаты для данного студента
-        const studentResultsRow = studentResults[studentName];
+        const resultId = studentResults[studentName][checkpointName].id;
 
-        // Перебираем все результаты для данного студента
-        for (const checkpointName in studentResultsRow) {
-            const result = studentResultsRow[checkpointName];
-            const resultId = result.id;
+        // Отправляем запрос на удаление результата
+        const response = await fetch(`/results/${resultId}`, {
+            method: 'DELETE',
+        });
 
-            // Отправляем запрос на удаление результата
-            const response = await fetch(`/results/${resultId}`, { method: "DELETE" });
-
-            if (!response.ok) {
-                throw new Error("Ошибка удаления результата");
-            }
+        if (!response.ok) {
+            throw new Error('Ошибка удаления результата');
         }
-        
-        // Обновляем таблицу после удаления
+
+        // Закрыть выпадающий список
+        const dropdown = document.getElementById(`dropdown-${studentName}`);
+        dropdown.style.display = 'none';
+
+        // Обновить результаты
         showResultsBtn.click(); // Это вызовет повторное отображение результатов
     } catch (error) {
         alert(error.message);
     }
 }
+
+function toggleDropdown(studentName) {
+    const dropdown = document.getElementById(`dropdown-${studentName}`);
+    
+    // Проверяем, если выпадающий список скрыт, показываем его
+    if (dropdown.style.display === "none" || dropdown.style.display === "") {
+        dropdown.style.display = "block";
+        populateDropdown(studentName); // Заполняем список для этого студента
+    } else {
+        // Если он виден, скрываем
+        dropdown.style.display = "none";
+    }
+}
+
+// Функция для заполнения выпадающего списка контрольными работами для студента
+function populateDropdown(studentName) {
+    const dropdown = document.getElementById(`dropdown-${studentName}`);
+    dropdown.innerHTML = ''; // Очищаем список, чтобы не дублировать элементы
+
+    const checkpointNames = Object.keys(studentResults[studentName]);
+
+    checkpointNames.forEach(checkpointName => {
+        const option = document.createElement('div');
+        option.classList.add('dropdown-item');
+        option.textContent = checkpointName;
+        option.onclick = function() {
+            deleteResult(studentName, checkpointName);
+        };
+        dropdown.appendChild(option);
+    });
+}
+
+
 
