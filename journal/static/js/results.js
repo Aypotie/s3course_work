@@ -49,6 +49,7 @@ showResultsBtn.addEventListener('click', async () => {
     checkpointNames.forEach(name => {
         headerRow.innerHTML += `<th>${name}</th>`;
     });
+    headerRow.innerHTML += `<th>Удалить оценку</th>`; // Добавляем новый столбец
     resultsTableHead.appendChild(headerRow);
 
     // Обновляем тело таблицы
@@ -67,12 +68,17 @@ showResultsBtn.addEventListener('click', async () => {
             }
             rowHTML += `<td result-id="${id}">${score}</td>`;
         });
+
+        // Добавляем кнопку удаления результата
+        rowHTML += `<td><button class="btn btn-remove" onclick="deleteResult('${studentName}', ${JSON.stringify(studentResults)})">−</button></td>`;
+
         row.innerHTML = rowHTML;
         resultsTableBody.appendChild(row);
     });
 
     resultsModal.style.display = 'flex';
 });
+
 
 // Close modal
 closeResultsBtn.addEventListener('click', () => {
@@ -152,3 +158,29 @@ document.getElementById("addResultForm").addEventListener("submit", async functi
         document.getElementById("resultErrorMessage").textContent = error.message;
     }
 });
+//удаление результата
+async function deleteResult(studentName, studentResults) {
+    try {
+        // Получаем все результаты для данного студента
+        const studentResultsRow = studentResults[studentName];
+
+        // Перебираем все результаты для данного студента
+        for (const checkpointName in studentResultsRow) {
+            const result = studentResultsRow[checkpointName];
+            const resultId = result.id;
+
+            // Отправляем запрос на удаление результата
+            const response = await fetch(`/results/${resultId}`, { method: "DELETE" });
+
+            if (!response.ok) {
+                throw new Error("Ошибка удаления результата");
+            }
+        }
+        
+        // Обновляем таблицу после удаления
+        showResultsBtn.click(); // Это вызовет повторное отображение результатов
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
