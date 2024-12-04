@@ -56,7 +56,7 @@ showResultsBtn.addEventListener('click', async () => {
 
     // Обновляем тело таблицы
     resultsTableBody.innerHTML = '';
-    Object.keys(studentResults).forEach(studentName => {
+    Object.keys(studentResults).sort().forEach(studentName => {
         const row = document.createElement('tr');
         let rowHTML = `<td>${studentName}</td>`;
         checkpointNames.forEach(checkpointName => {

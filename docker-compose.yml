@@ -7,8 +7,6 @@ services:
       context: ./journal             # Путь к Dockerfile
     ports:
       - "8000:8000"                  # Проброс порта для веб-приложения
-    volumes:
-      - ./config:/app/config         # монтируем папку для просмотра внутри контейнера
     depends_on:
       - db                           # Сначала запускается база данных
     environment:

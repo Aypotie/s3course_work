@@ -10,6 +10,13 @@ async function loadStudents() {
         tableBody.innerHTML = '';
 
         if (data.students && data.students.length > 0) {
+
+            data.students.sort((a, b) => {
+                if (a.surname.toLowerCase() < b.surname.toLowerCase()) return -1;
+                if (a.surname.toLowerCase() > b.surname.toLowerCase()) return 1;
+                return 0;
+            });
+
             data.students.forEach(student => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
