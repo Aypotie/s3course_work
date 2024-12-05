@@ -117,8 +117,11 @@ td {
     background: white;
     padding: 20px;
     border-radius: 5px;
-    width: 400px;
-    max-width: 90%;
+    width: auto; /* Автоматическая ширина */
+    max-width: 90%; /* Ограничиваем ширину до 90% экрана */
+    max-height: 90%; /* Ограничиваем высоту до 90% экрана */
+    position: relative; 
+    overflow-y: auto; /* Скроллинг, если содержимое превышает размер */
 }
 
 .modal-content form {

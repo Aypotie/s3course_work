@@ -1,16 +1,15 @@
 version: '3.9'
 
 services: 
-  services:
-  web:
-    build:
-      context: ./journal             # Путь к Dockerfile
-    ports:
-      - "8000:8000"                  # Проброс порта для веб-приложения
-    depends_on:
-      - db                           # Сначала запускается база данных
-    environment:
-      DATABASE_URL: postgres://example_user:example@db:5432/journal
+  #web:
+  #  build:
+  #    context: ./journal             # Путь к Dockerfile
+  #  ports:
+  #    - "8000:8000"                  # Проброс порта для веб-приложения
+  #  depends_on:
+  #    - db                           # Сначала запускается база данных
+  #  environment:
+  #    DATABASE_URL: postgres://example_user:example@db:5432/journal
       # Формат: postgres://<пользователь>:<пароль>@<хост>:<порт>/<база данных>
 
   db:

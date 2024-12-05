@@ -51,12 +51,16 @@ showResultsBtn.addEventListener('click', async () => {
     checkpointNames.forEach(name => {
         headerRow.innerHTML += `<th>${name}</th>`;
     });
-    headerRow.innerHTML += `<th>Удалить оценку</th>`; // Добавляем новый столбец
+    headerRow.innerHTML += `<th>Итоговый балл</th>`;
+    headerRow.innerHTML += `<th>Удалить оценку</th>`; 
+
     resultsTableHead.appendChild(headerRow);
 
+    
     // Обновляем тело таблицы
     resultsTableBody.innerHTML = '';
     Object.keys(studentResults).sort().forEach(studentName => {
+        sum = 0;
         const row = document.createElement('tr');
         let rowHTML = `<td>${studentName}</td>`;
         checkpointNames.forEach(checkpointName => {
@@ -69,7 +73,9 @@ showResultsBtn.addEventListener('click', async () => {
                 id = '0';
             }
             rowHTML += `<td result-id="${id}">${score}</td>`;
+            sum += Number(score);
         });
+        rowHTML += `<td> ${sum}</td>`;
 
         // Добавляем кнопку удаления результата с выпадающим списком
         rowHTML += `<td>
@@ -78,7 +84,7 @@ showResultsBtn.addEventListener('click', async () => {
                             <!-- Сюда будут динамически добавляться контрольные работы -->
                         </div>
                      </td>`;
-
+        
         row.innerHTML = rowHTML;
         resultsTableBody.appendChild(row);
     });
