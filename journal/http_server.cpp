@@ -8,8 +8,18 @@
 
 #define CROW_MAIN
 
+void createTxtFile(const string& fileName) {
+    if (!filesystem::exists(fileName)) {
+        ofstream outFile(fileName);
+    } else {
+        cerr << "File exists" << endl;
+    }
+}
+
 int main() {
     config cfg = loadConfig();
+
+    createTxtFile("group_name.txt");
 
     Database db(cfg.dbConfig);
     db.createTables();

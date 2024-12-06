@@ -1,17 +1,3 @@
-async function loadGroupName() {
-    try {
-        const response = await fetch('/group_name');
-        if (!response.ok) {
-            throw new Error('Failed to fetch group name');
-        }
-        const data = await response.json();
-        const groupNameElement = document.getElementById('groupName');
-        groupNameElement.textContent = `Название группы: ${data.group_name}`;
-    } catch (error) {
-        console.error('Error loading group name:', error);
-        document.getElementById('groupName').textContent = 'Название группы не установлено';
-    }
-}
 
 async function loadCheckpoints() {
     try {

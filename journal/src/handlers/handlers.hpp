@@ -93,52 +93,45 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         }
     });
 
-    CROW_ROUTE(app, "/group_name").methods(crow::HTTPMethod::POST)([&dbs](const crow::request& req) {
-        auto body = crow::json::load(req.body);
-
-        if (body.error()) {
-            return crow::response(400, "Invalid JSON");
-        }
-
-        if (!body.has("name")) {
-            return crow::response(400, "Missing name group");
-        }
-
-        string name = body["name"].s();
-
-        if (name == "") {
-            return crow::response(400, "Name is empty");
-        }
-
+    CROW_ROUTE(app, "/group_name").methods(crow::HTTPMethod::POST)([] (const crow::request& req) {
+        string filename = "group_name.txt";
         try {
-            ofstream file("group_name.txt");
-            if (!file.is_open()) {
-                return crow::response(500, "Failed to create file");
+            auto body = crow::json::load(req.body);
+            if (!body) {
+                return crow::response(400, "Invalid JSON");
             }
 
-            file <<  name << endl;
+            string group_name = body["name"].s();
+            ofstream file(filename);
+            if (!file.is_open()) {
+                return crow::response(500, "Failed to open file");
+            }
+
+            file << group_name;
             file.close();
+
+            cout << "Название группы сохранено: " << group_name << endl; // Отладка
+            return crow::response(200, "Group name saved");
         } catch (exception &e) {
-            return crow::response(500, "Error creating file");
+            cout << "Ошибка: " << e.what() << endl; // Отладка
+            return crow::response(500, "Internal error");
         }
-        
-        return crow::response(200);
     });
 
     CROW_ROUTE(app, "/group_name").methods(crow::HTTPMethod::GET)([&dbs](const crow::request& req) {
-        string filename  = "group_name.txt"; 
+        string filename = "group_name.txt"; 
         try {
             ifstream file(filename);
-            if (!file.is_open())  {
+            if (!file.is_open()) {
                 return crow::response(404, "Group not exists");
             }
-            string group_name;;
 
+            string group_name;
             getline(file, group_name);
             file.close();
 
-            if(group_name.empty()) {
-                return crow::response(400, "File is empty");
+            if (group_name.empty()) {
+                return crow::response(204, "File is empty"); // 204 No Content
             }
 
             crow::json::wvalue response;
@@ -293,6 +286,33 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
             return crow::response(500, "Internal error");
         }
         return crow::response(200);
+    });
+
+    CROW_ROUTE(app, "/api/auth").methods(crow::HTTPMethod::POST)([](const crow::request& req) {
+        const string correctPassword = "1234";
+
+        auto body = crow::json::load(req.body);
+
+        if (body.error()) {
+            return crow::response(400, "Invalid json");
+        }
+
+        if (!body.has("password")) {
+            return crow::response(400, "Missing");
+        }
+
+        string password = body["password"].s();
+
+        if (password == "") {
+            return crow::response(400, "Pasword iss empty");
+        }
+
+        if (password == correctPassword) {
+            return crow::response(200, R"({"success": true})");
+        } else {
+            return crow::response(401, R"({"success": false, "message": "Incorrect password"})");
+        }
+
     });
 
 }
