@@ -1,18 +1,4 @@
-<<<<<<< HEAD
-version: '3.9'
 
-services: 
-  #web:
-  #  build:
-  #    context: ./journal             # Путь к Dockerfile
-  #  ports:
-  #    - "8000:8000"                  # Проброс порта для веб-приложения
-  #  depends_on:
-  #    - db                           # Сначала запускается база данных
-  #  environment:
-  #    DATABASE_URL: postgres://example_user:example@db:5432/journal
-      # Формат: postgres://<пользователь>:<пароль>@<хост>:<порт>/<база данных>
-=======
 services: 
   web:
     build:
@@ -26,24 +12,16 @@ services:
     networks:
       journal_network:
         ipv4_address: 172.38.0.10
->>>>>>> a61dd9b (add docker; http auth)
 
   db:
     image: postgres
     restart: always
-<<<<<<< HEAD
-    ports: 
-      - 127.0.0.1:5432:5432
-=======
->>>>>>> a61dd9b (add docker; http auth)
     environment: 
       POSTGRES_USER: example_user
       POSTGRES_PASSWORD: example
       POSTGRES_DB: journal
     volumes:
       - ./data:/var/lib/postgresql/data
-<<<<<<< HEAD
-=======
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U example_user -d journal"]
       interval: 30s
@@ -72,4 +50,3 @@ networks:
     ipam:
       config:
         - subnet: 172.38.0.0/16
->>>>>>> a61dd9b (add docker; http auth)
