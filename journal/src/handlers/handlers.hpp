@@ -287,37 +287,6 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         }
         return crow::response(200);
     });
-
-<<<<<<< HEAD
-    CROW_ROUTE(app, "/api/auth").methods(crow::HTTPMethod::POST)([](const crow::request& req) {
-        const string correctPassword = "1234";
-
-        auto body = crow::json::load(req.body);
-
-        if (body.error()) {
-            return crow::response(400, "Invalid json");
-        }
-
-        if (!body.has("password")) {
-            return crow::response(400, "Missing");
-        }
-
-        string password = body["password"].s();
-
-        if (password == "") {
-            return crow::response(400, "Pasword iss empty");
-        }
-
-        if (password == correctPassword) {
-            return crow::response(200, R"({"success": true})");
-        } else {
-            return crow::response(401, R"({"success": false, "message": "Incorrect password"})");
-        }
-
-    });
-
-=======
->>>>>>> a61dd9b (add docker; http auth)
 }
 
 #endif 
