@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '3.9'
 
 services: 
@@ -11,15 +12,64 @@ services:
   #  environment:
   #    DATABASE_URL: postgres://example_user:example@db:5432/journal
       # Формат: postgres://<пользователь>:<пароль>@<хост>:<порт>/<база данных>
+=======
+services: 
+  web:
+    build:
+      context: ./journal
+    ports:
+      - 127.0.0.1:8000:8000
+    depends_on:
+      db:
+        condition: service_healthy  
+    restart: always
+    networks:
+      journal_network:
+        ipv4_address: 172.38.0.10
+>>>>>>> a61dd9b (add docker; http auth)
 
   db:
     image: postgres
     restart: always
+<<<<<<< HEAD
     ports: 
       - 127.0.0.1:5432:5432
+=======
+>>>>>>> a61dd9b (add docker; http auth)
     environment: 
       POSTGRES_USER: example_user
       POSTGRES_PASSWORD: example
       POSTGRES_DB: journal
     volumes:
       - ./data:/var/lib/postgresql/data
+<<<<<<< HEAD
+=======
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U example_user -d journal"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      journal_network:
+        ipv4_address: 172.38.0.20
+  
+  nginx:
+    image: nginx:1.27.3
+    restart: always
+    ports:
+      - "44222:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./.htpasswd:/etc/nginx/.htpasswd
+    depends_on:
+      - web
+    networks:
+      journal_network:
+
+networks:
+  journal_network:
+    ipam:
+      config:
+        - subnet: 172.38.0.0/16
+>>>>>>> a61dd9b (add docker; http auth)

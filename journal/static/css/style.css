@@ -158,6 +158,7 @@ td {
 .dropdown-item:hover {
     background-color: #ddd;
 }
+<<<<<<< HEAD
 
 .auth-modal {
     position: fixed;
@@ -221,3 +222,5 @@ td {
     display: none;
 }
 
+=======
+>>>>>>> a61dd9b (add docker; http auth)

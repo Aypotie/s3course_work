@@ -288,6 +288,7 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
         return crow::response(200);
     });
 
+<<<<<<< HEAD
     CROW_ROUTE(app, "/api/auth").methods(crow::HTTPMethod::POST)([](const crow::request& req) {
         const string correctPassword = "1234";
 
@@ -315,6 +316,8 @@ void setupRoutes(crow::SimpleApp& app, Database& dbs) {
 
     });
 
+=======
+>>>>>>> a61dd9b (add docker; http auth)
 }
 
 #endif 

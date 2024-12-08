@@ -4,6 +4,7 @@
     loadCheckpoints();
 });
 */
+<<<<<<< HEAD
 authSubmitBtn.addEventListener('click', submitAuth);
 authPassword.addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
@@ -32,6 +33,8 @@ async function submitAuth() {
         authError.style.display = 'block';
     }
 }
+=======
+>>>>>>> a61dd9b (add docker; http auth)
 
 document.addEventListener("DOMContentLoaded", () => {
     loadStudents();
